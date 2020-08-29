@@ -1,0 +1,21 @@
+{
+  "name": "pattern-tester",
+  "version": "0.0.1",
+  "description": "Library to parse and nuild an xsd pattern in typescript",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "webpack"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^26.0.10",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.3.0",
+    "ts-loader": "^8.0.3",
+    "typescript": "^4.0.2",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}
