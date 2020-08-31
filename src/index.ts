@@ -1,4 +1,4 @@
-import { Regexp, Branch, Piece, Quantifier, Atom, NormalChar } from "./components";
+import { Regexp, Branch, Piece, Quantifier, Atom, NormalChar, MultiChar, WildChar, CharGroup } from "./components";
 
 
 interface ValidationResult {
@@ -16,9 +16,9 @@ export class XsdPattern {
     constructor(pattern: string) {
         this.pattern = pattern;
         try {
-            var leftover:string ='';
-            [this.regexp,leftover] = parseRegexp(pattern);
-            if (leftover.length > 0){
+            var leftover: string = '';
+            [this.regexp, leftover] = parseRegexp(pattern);
+            if (leftover.length > 0) {
                 throw new ParseException("Unexpected end of expression");
             }
         }
@@ -84,6 +84,35 @@ var parseAtom = (input: string): [Atom, string] => {
         }
         return [regexp, leftover.substr(1)];
     }
+    else if (firstChar == '\\') {
+        if (input[1].match(/[nrt\\|.?*+(){}-[]\^]/)) {
+            return [new NormalChar(input[1]), input.substr(2)];
+        }
+        else if (input[1].match(/[sSiIcCdDwW]/)){
+            return [new MultiChar(input[1]), input.substr(2)];
+        }
+        else if (input[1].match(/[sSiIcCdDwW]/)){
+            return [new WildChar(), input.substr(2)];
+        }
+        else if (input[1].match(/[pP]/)){
+            throw new ParseException(`category and complement escape are not supported by this Lib`);
+        }
+        else {
+            throw new ParseException(`Character ${input[1]} cannot be escaped`);
+        }
+    }
+    else if (firstChar == '[')
+    {
+        var [chargroup, leftover] = parseCharGroup(input.substr(1));
+        if (leftover[0] != ']') {
+            throw new ParseException("Missing ] to close expression");
+        }
+        return [chargroup, leftover.substr(1)];
+    }
+    throw new ParseException(`Unexpected character ${firstChar}`);
+}
+
+var parseCharGroup = (input: string): [CharGroup, string] => {
     throw new ParseException("not yet implemented");
 }
 
