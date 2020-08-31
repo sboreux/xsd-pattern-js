@@ -1,41 +1,61 @@
 
-export abstract class Atom {
 
-}
-
-export class NormalChar extends Atom {
+export class SingleChar {
     char: string;
 
     constructor(value: string) {
-        super();
         this.char = value;
     }
 
 }
 
-export class MultiChar extends Atom {
+export class MultiChar {
     code: string;
 
     constructor(value: string) {
-        super();
         this.code = value;
     }
 
 }
 
-export class WildChar extends Atom {
+export class Category {
+    code: string;
+
+    constructor(value: string) {
+        this.code = value;
+    }
 
 }
 
-export class CharClass extends Atom {
+export class Complement {
+    code: string;
+
+    constructor(value: string) {
+        this.code = value;
+    }
 
 }
 
-export class CharGroup extends Atom{
+export class WildChar {
 
 }
 
-export class Regexp extends Atom {
+
+export class CharGroup {
+    negative: boolean = false;
+    parts: Array<SingleChar | MultiChar | CharRange > = [];
+}
+
+export class CharRange {
+    begin: SingleChar;
+    end: SingleChar;
+    constructor(begin: SingleChar, end: SingleChar) {
+        this.begin = begin;
+        this.end = end;
+    }
+}
+
+export class Regexp {
 
     branches: Array<Branch> = [];
 }
@@ -46,7 +66,7 @@ export class Quantifier {
 }
 
 export class Piece {
-    atom!: Atom;
+    atom!: SingleChar | RegExp | MultiChar | WildChar | CharGroup;
     quantifier: Quantifier = new Quantifier();
 }
 

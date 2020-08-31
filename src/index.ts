@@ -1,4 +1,4 @@
-import { Regexp, Branch, Piece, Quantifier, Atom, NormalChar, MultiChar, WildChar, CharGroup } from "./components";
+import { Regexp, Branch, Piece, Quantifier, SingleChar, MultiChar, WildChar, CharGroup, CharRange, Category, Complement } from "./components";
 
 
 interface ValidationResult {
@@ -72,10 +72,13 @@ var parsePiece = (input: string): [Piece, string] => {
     return [piece, leftover];
 }
 
-var parseAtom = (input: string): [Atom, string] => {
+var parseAtom = (input: string): [SingleChar | RegExp | MultiChar | WildChar | CharGroup, string] => {
     var firstChar = input.substr(0, 1);
-    if (firstChar.match(/[^.\?*+{}()|\[\]]/)) {
-        return [new NormalChar(input[0]), input.substr(1)];
+    if (firstChar.match(/[^.\\?*+{}()|\[\]]/)) {
+        return [new SingleChar(input[0]), input.substr(1)];
+    }
+    else if (firstChar == '.') {
+        return [new WildChar(), input.substr(1)];
     }
     else if (firstChar == '(') {
         var [regexp, leftover] = parseRegexp(input.substr(1));
@@ -85,24 +88,9 @@ var parseAtom = (input: string): [Atom, string] => {
         return [regexp, leftover.substr(1)];
     }
     else if (firstChar == '\\') {
-        if (input[1].match(/[nrt\\|.?*+(){}-[]\^]/)) {
-            return [new NormalChar(input[1]), input.substr(2)];
-        }
-        else if (input[1].match(/[sSiIcCdDwW]/)){
-            return [new MultiChar(input[1]), input.substr(2)];
-        }
-        else if (input[1].match(/[sSiIcCdDwW]/)){
-            return [new WildChar(), input.substr(2)];
-        }
-        else if (input[1].match(/[pP]/)){
-            throw new ParseException(`category and complement escape are not supported by this Lib`);
-        }
-        else {
-            throw new ParseException(`Character ${input[1]} cannot be escaped`);
-        }
+        return parseCharEscape(input);
     }
-    else if (firstChar == '[')
-    {
+    else if (firstChar == '[') {
         var [chargroup, leftover] = parseCharGroup(input.substr(1));
         if (leftover[0] != ']') {
             throw new ParseException("Missing ] to close expression");
@@ -112,8 +100,90 @@ var parseAtom = (input: string): [Atom, string] => {
     throw new ParseException(`Unexpected character ${firstChar}`);
 }
 
+var parseCharEscape = (input: string): [SingleChar | MultiChar | WildChar | Category | Complement, string] => {
+    if (input[1].match(/[nrt\\|.?*+(){}\-\[\]\^]/)) {
+        return [new SingleChar(input[1]), input.substr(2)];
+    }
+    else if (input[1].match(/[sSiIcCdDwW]/)) {
+        return [new MultiChar(input[1]), input.substr(2)];
+    }
+    else if (input[1].match(/[sSiIcCdDwW]/)) {
+        return [new WildChar(), input.substr(2)];
+    }
+    else if (input[1].match(/[pP]/)) {
+        var match = input.substr(2).match(/^\{([0-9a-zA-Z\-]+)\}/)
+        if (match) {
+            var name = match[1];
+            var leftover = input.substr(match[0].length+2);
+            if (input[1] == 'p') {
+                return [new Category(name), leftover];
+            }
+            return [new Complement(name), leftover];
+        }
+        else {
+            throw new ParseException(`category or complement not correctly formated`);
+        }
+    }
+    else {
+        throw new ParseException(`Character ${input[1]} cannot be escaped`);
+    }
+}
+
 var parseCharGroup = (input: string): [CharGroup, string] => {
-    throw new ParseException("not yet implemented");
+    var leftover = input;
+    var char_group = new CharGroup();
+    if (leftover[0] == '^') {
+        char_group.negative = true;
+        leftover = leftover.substr(1);
+    }
+    var [part, leftover] = parseCharGroupPart(leftover);
+    char_group.parts.push(part);
+    while (leftover[0] != ']') {
+        var [part, leftover] = parseCharGroupPart(leftover);
+        char_group.parts.push(part);
+    }
+    return [char_group, leftover];
+}
+
+var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange, string] => {
+    var char: SingleChar | MultiChar | WildChar;
+    var leftover = input;
+    if (input[0] == '\\') {
+        [char, leftover] = parseCharEscape(leftover);
+    }
+    else if (input[0] == ']') {
+        throw new ParseException(`Unexpected closing ]`);
+    }
+    else if (input[0] == '[') {
+        throw new ParseException(`[ must be escape in CharGroup`);
+    }
+    else {
+        char = new SingleChar(input[0]);
+        leftover = input.substr(1);
+    }
+
+    if (char instanceof WildChar) {
+        throw new ParseException(`Wild char cannot be used in CharGroup`);
+    }
+
+    if (leftover[0] == '-') {
+        var end_char: SingleChar | MultiChar | WildChar;
+        if (char instanceof MultiChar) {
+            throw new ParseException(`Multi char cannot be used in CharRange`);
+        }
+        [end_char, leftover] = parseCharEscape(leftover.substr(1));
+        if (end_char instanceof WildChar) {
+            throw new ParseException(`Wild char cannot be used in CharRange`);
+        }
+        if (end_char instanceof MultiChar) {
+            throw new ParseException(`Multi char cannot be used in CharRange`);
+        }
+        return [new CharRange(char, end_char), leftover]
+    }
+    else {
+        return [char, leftover];
+    }
+
 }
 
 var parseQuantifier = (input: string): [Quantifier, string] => {
