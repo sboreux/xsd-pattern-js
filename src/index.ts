@@ -1,4 +1,5 @@
 import { Regexp, Branch, Piece, Quantifier, SingleChar, MultiChar, WildChar, CharGroup, CharRange, Category, Complement } from "./components";
+import { printAny } from "./print";
 
 
 interface ValidationResult {
@@ -38,8 +39,16 @@ export class XsdPattern {
     isValid(): ValidationResult {
         return this.validationResult;
     }
-}
 
+    toString(): string {
+        if (!this.validationResult.result) {
+            return `Invalid regexp [${this.validationResult.reason}]`;
+        }
+        else {
+            return printAny(this.regexp);
+        }
+    }
+}
 
 var parseRegexp = (input: string): [Regexp, string] => {
 
@@ -114,7 +123,7 @@ var parseCharEscape = (input: string): [SingleChar | MultiChar | WildChar | Cate
         var match = input.substr(2).match(/^\{([0-9a-zA-Z\-]+)\}/)
         if (match) {
             var name = match[1];
-            var leftover = input.substr(match[0].length+2);
+            var leftover = input.substr(match[0].length + 2);
             if (input[1] == 'p') {
                 return [new Category(name), leftover];
             }
@@ -188,13 +197,13 @@ var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange, s
 
 var parseQuantifier = (input: string): [Quantifier, string] => {
     if (input[0] == '+') {
-        return [{ min: 1, max: NaN }, input.substr(1)];
+        return [new Quantifier(1, NaN), input.substr(1)];
     }
     if (input[0] == '*') {
-        return [{ min: 0, max: NaN }, input.substr(1)];
+        return [new Quantifier(0,NaN), input.substr(1)];
     }
     if (input[0] == '?') {
-        return [{ min: 0, max: 1 }, input.substr(1)];
+        return [new Quantifier(0,1), input.substr(1)];
     }
     if (input[0] == '{') {
         var match = input.match(/\{([0-9]+)(,)?([0-9]+)?\}/);
@@ -209,11 +218,11 @@ var parseQuantifier = (input: string): [Quantifier, string] => {
         else if (match[2]) {
             max = NaN;
         }
-        return [{ min: min, max: max }, input.substr(match[0].length)];
+        return [new Quantifier(min,max), input.substr(match[0].length)];
 
     }
     //no quantifier == default quantifier
-    return [new Quantifier(), input];
+    return [new Quantifier(1,1), input];
 }
 
 

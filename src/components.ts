@@ -6,7 +6,6 @@ export class SingleChar {
     constructor(value: string) {
         this.char = value;
     }
-
 }
 
 export class MultiChar {
@@ -15,6 +14,8 @@ export class MultiChar {
     constructor(value: string) {
         this.code = value;
     }
+
+
 
 }
 
@@ -61,13 +62,18 @@ export class Regexp {
 }
 
 export class Quantifier {
-    min: number = 1;
-    max: number = 1;
+    min: number;
+    max: number;
+
+    constructor(min:number,max:number){
+        this.min= min;
+        this.max=max;
+    }
 }
 
 export class Piece {
     atom!: SingleChar | RegExp | MultiChar | WildChar | CharGroup;
-    quantifier: Quantifier = new Quantifier();
+    quantifier: Quantifier = new Quantifier(1,1);
 }
 
 export class Branch {
