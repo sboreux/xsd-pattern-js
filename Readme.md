@@ -1,0 +1,1 @@
+This library parse a XSD regexp.
