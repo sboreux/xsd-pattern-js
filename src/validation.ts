@@ -42,11 +42,18 @@ var atomtoJSre = (atom: Regexp | SingleChar | MultiChar | WildChar | CharGroup):
 
 var multiCharToRange = (input: MultiChar): string => {
     var nameStartChar = ":A-Z_a-z\u{C0}-\u{D6}\u{D8}-\u{F6}\u{F8}-\u{2FF}\u{370}-\u{37D}\u{37F}-\u{1FFF}\u{200C}-\u{200D}\u{2070}-\u{218F}\u{2C00}-\u{2FEF}\u{3001}-\u{D7FF}\u{F900}-\u{FDCF}\u{FDF0}-\u{FFFD}\u{10000}-\u{EFFFF}";
+    var nameChar = nameStartChar + "\-\.0-9\u{B7}\u{0300}-\u{036F}\u{203F}-\u{2040}";
     if (input.code == 'i') {
         return nameStartChar;
     }
     else if (input.code == 'I') {
         return "^" + nameStartChar;
+    }
+    if (input.code == 'c') {
+        return nameChar;
+    }
+    else if (input.code == 'C') {
+        return "^" + nameChar;
     }
     throw new Error("Unexpected");
 }
@@ -67,7 +74,10 @@ var partstoJSre = (input: SingleChar | MultiChar | CharRange): string => {
         return singleChartoJSre(input)
     }
     else if (input instanceof MultiChar) {
-        return "TODO";
+        if (['s', 'S', 'd', 'D', 'w', 'W'].includes(input.code))
+            return "\\" + input.code;
+        else
+            return multiCharToRange(input)
     }
     else if (input instanceof CharRange) {
         return `${singleChartoJSre(input.begin)}-${singleChartoJSre(input.end)}`

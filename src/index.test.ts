@@ -291,7 +291,10 @@ test("MultiChar namecharstart (\\i) ", () => {
     expect(pattern.match('evensmiley😀')).toBeTruthy();
     expect(pattern.match('-')).toBeFalsy();
     expect(pattern.match('0')).toBeFalsy();
-
+    expect(pattern.match(' ')).toBeFalsy();
+    expect(pattern.match('  ')).toBeFalsy();
+    expect(pattern.match('\t\n\r')).toBeFalsy();
+    
     
     var pattern = new XsdPattern("\\I+");
     expect(pattern.isValid().result).toBeTruthy();
@@ -302,7 +305,39 @@ test("MultiChar namecharstart (\\i) ", () => {
     expect(pattern.match('evensmiley😀')).not.toBeTruthy();
     expect(pattern.match('-')).not.toBeFalsy();
     expect(pattern.match('0')).not.toBeFalsy();
+    expect(pattern.match(' ')).not.toBeFalsy();
+    expect(pattern.match('  ')).not.toBeFalsy();
+    expect(pattern.match('\t\n\r')).not.toBeFalsy();
+    
 
+})
+
+test("MultiChar namechar (\\c) ", () => {
+    var pattern = new XsdPattern("[\\c]+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.match('Document')).toBeTruthy();
+    expect(pattern.match('_doc')).toBeTruthy();
+    expect(pattern.match('教育')).toBeTruthy();
+    expect(pattern.match('evensmiley😀')).toBeTruthy();
+    expect(pattern.match('-')).toBeTruthy();
+    expect(pattern.match('0')).toBeTruthy();
+    expect(pattern.match(' ')).toBeFalsy();
+    expect(pattern.match('  ')).toBeFalsy();
+    expect(pattern.match('\t\n\r')).toBeFalsy();
+    
+    
+    var pattern = new XsdPattern("[\\C]+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.match('Document')).not.toBeTruthy();
+    expect(pattern.match('_doc')).not.toBeTruthy();
+    expect(pattern.match('教育')).not.toBeTruthy();
+    expect(pattern.match('evensmiley😀')).not.toBeTruthy();
+    expect(pattern.match('-')).not.toBeTruthy();
+    expect(pattern.match('0')).not.toBeTruthy();
+    expect(pattern.match(' ')).not.toBeFalsy();
+    expect(pattern.match('  ')).not.toBeFalsy();
+    expect(pattern.match('\t\n\r')).not.toBeFalsy();
+    
 
 })
 
