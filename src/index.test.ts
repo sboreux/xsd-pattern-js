@@ -9,6 +9,8 @@ test("empty", () => {
     var branches = pattern.regexp.branches;
     expect(branches).toHaveLength(1);
     expect(branches[0].pieces).toHaveLength(0);
+    expect(pattern.match('')).toBeTruthy();
+    expect(pattern.match('A')).toBeFalsy();
 })
 
 
@@ -22,6 +24,9 @@ test("one literal only", () => {
     expect(branches[0].pieces[0].atom).toStrictEqual(new SingleChar("A"));
     expect(branches[0].pieces[0].quantifier.min).toBe(1);
     expect(branches[0].pieces[0].quantifier.max).toBe(1);
+    expect(pattern.match('A')).toBeTruthy();
+    expect(pattern.match('')).toBeFalsy();
+    expect(pattern.match('B')).toBeFalsy();
 })
 
 test("literals only", () => {
@@ -36,6 +41,12 @@ test("literals only", () => {
     expect(branches[0].pieces[1].atom).toStrictEqual(new SingleChar("B"));
     expect(branches[0].pieces[2].atom).toBeInstanceOf(SingleChar);
     expect(branches[0].pieces[2].atom).toStrictEqual(new SingleChar("C"));
+    expect(pattern.match('ABC')).toBeTruthy();
+    expect(pattern.match('')).toBeFalsy();
+    expect(pattern.match('AB')).toBeFalsy();
+    expect(pattern.match('BC')).toBeFalsy();
+    expect(pattern.match('AABC')).toBeFalsy();
+
 })
 
 test("2 branches", () => {
@@ -49,6 +60,11 @@ test("2 branches", () => {
     expect(branches[1].pieces).toHaveLength(1);
     expect(branches[1].pieces[0].atom).toBeInstanceOf(SingleChar);
     expect(branches[1].pieces[0].atom).toStrictEqual(new SingleChar("B"));
+    expect(pattern.match('A')).toBeTruthy();
+    expect(pattern.match('B')).toBeTruthy();
+    expect(pattern.match('AB')).toBeFalsy();
+    expect(pattern.match('AA')).toBeFalsy();
+    expect(pattern.match('BB')).toBeFalsy();
 
 })
 
@@ -66,7 +82,12 @@ test("3 branches", () => {
     expect(branches[2].pieces).toHaveLength(1);
     expect(branches[2].pieces[0].atom).toBeInstanceOf(SingleChar);
     expect(branches[2].pieces[0].atom).toStrictEqual(new SingleChar("C"));
-
+    expect(pattern.match('A')).toBeTruthy();
+    expect(pattern.match('B')).toBeTruthy();
+    expect(pattern.match('C')).toBeTruthy();
+    expect(pattern.match('AB')).toBeFalsy();
+    expect(pattern.match('ABC')).toBeFalsy();
+    expect(pattern.match('BC')).toBeFalsy();
 })
 
 test("test simple quantifiers", () => {
@@ -76,11 +97,19 @@ test("test simple quantifiers", () => {
     expect(branches).toHaveLength(1);
     expect(branches[0].pieces).toHaveLength(3);
     expect(branches[0].pieces[0].quantifier.min).toBe(1);
-    expect(branches[0].pieces[0].quantifier.max).toBeNaN();
+    expect(1/branches[0].pieces[0].quantifier.max).toBe(0); //check infinity trick
     expect(branches[0].pieces[1].quantifier.min).toBe(0);
-    expect(branches[0].pieces[1].quantifier.max).toBeNaN();
+    expect(1/branches[0].pieces[1].quantifier.max).toBe(0); //check infinity trick
     expect(branches[0].pieces[2].quantifier.min).toBe(0);
     expect(branches[0].pieces[2].quantifier.max).toBe(1);
+    expect(pattern.match('A')).toBeTruthy();
+    expect(pattern.match('AB')).toBeTruthy();
+    expect(pattern.match('ABC')).toBeTruthy();
+    expect(pattern.match('AC')).toBeTruthy();
+    expect(pattern.match('ABBBBBBC')).toBeTruthy();
+    expect(pattern.match('AAAAAABBBBBBC')).toBeTruthy();
+    expect(pattern.match('BC')).toBeFalsy();
+    expect(pattern.match('ABCC')).toBeFalsy();
 })
 
 test("test quantity quantifiers", () => {
@@ -92,9 +121,18 @@ test("test quantity quantifiers", () => {
     expect(branches[0].pieces[0].quantifier.min).toBe(2);
     expect(branches[0].pieces[0].quantifier.max).toBe(4);
     expect(branches[0].pieces[1].quantifier.min).toBe(2);
-    expect(branches[0].pieces[1].quantifier.max).toBeNaN();
+    expect(1/branches[0].pieces[1].quantifier.max).toBe(0); //check infinity trick
     expect(branches[0].pieces[2].quantifier.min).toBe(4);
     expect(branches[0].pieces[2].quantifier.max).toBe(4);
+    expect(pattern.match('AABBCCCC')).toBeTruthy();
+    expect(pattern.match('AAAABBCCCC')).toBeTruthy();
+    expect(pattern.match('AABBBBBBBBBBCCCC')).toBeTruthy();
+    expect(pattern.match('AAABBBBBBCCCC')).toBeTruthy();
+    expect(pattern.match('ABBCCCC')).toBeFalsy();
+    expect(pattern.match('AABCCCC')).toBeFalsy();
+    expect(pattern.match('AABBCCC')).toBeFalsy();
+    expect(pattern.match('AAAAABBCCCC')).toBeFalsy();
+    expect(pattern.match('AABBCCCCC')).toBeFalsy();
 })
 
 test("test Error on Quantifier", () => {
@@ -104,7 +142,7 @@ test("test Error on Quantifier", () => {
 })
 
 test("inner expression branches", () => {
-    var pattern = new XsdPattern("A|(B|C)");
+    var pattern = new XsdPattern("A|(AB|CD)");
     expect(pattern.isValid().result).toBeTruthy();
     var branches = pattern.regexp.branches;
     expect(branches).toHaveLength(2);
@@ -115,14 +153,22 @@ test("inner expression branches", () => {
     expect(branches[1].pieces[0].atom).toBeInstanceOf(Regexp);
     if (branches[1].pieces[0].atom instanceof Regexp) {
         var innerBranches = branches[1].pieces[0].atom.branches;
-        expect(innerBranches[0].pieces).toHaveLength(1);
+        expect(innerBranches[0].pieces).toHaveLength(2);
         expect(innerBranches[0].pieces[0].atom).toBeInstanceOf(SingleChar);
-        expect(innerBranches[0].pieces[0].atom).toStrictEqual(new SingleChar("B"));
-        expect(innerBranches[1].pieces).toHaveLength(1);
+        expect(innerBranches[0].pieces[0].atom).toStrictEqual(new SingleChar("A"));
+        expect(innerBranches[0].pieces[1].atom).toStrictEqual(new SingleChar("B"));
+        expect(innerBranches[1].pieces).toHaveLength(2);
         expect(innerBranches[1].pieces[0].atom).toBeInstanceOf(SingleChar);
         expect(innerBranches[1].pieces[0].atom).toStrictEqual(new SingleChar("C"));
+        expect(innerBranches[1].pieces[1].atom).toStrictEqual(new SingleChar("D"));
     }
-
+    expect(pattern.match('A')).toBeTruthy();
+    expect(pattern.match('AB')).toBeTruthy();
+    expect(pattern.match('CD')).toBeTruthy();
+    expect(pattern.match('B')).toBeFalsy();
+    expect(pattern.match('AAB')).toBeFalsy();
+    expect(pattern.match('ACD')).toBeFalsy();
+    expect(pattern.match('BC')).toBeFalsy();
 })
 
 test("advanced quantifiers", () => {
@@ -133,7 +179,7 @@ test("advanced quantifiers", () => {
                 pieces: [
                     {
                         atom: { char: "A" },
-                        quantifier: { min: 1, max: NaN }
+                        quantifier: { min: 1, max: Infinity }
                     }
                 ]
             },
@@ -158,7 +204,7 @@ test("advanced quantifiers", () => {
                                 ]
                             },]
                         },
-                        quantifier: { min: 0, max: NaN }
+                        quantifier: { min: 0, max: Infinity }
                     }
                 ]
             }
@@ -167,6 +213,14 @@ test("advanced quantifiers", () => {
 
     expect(pattern.isValid().result).toBeTruthy();
     expect(pattern.regexp).toEqual(regexp);
+    expect(pattern.match('A')).toBeTruthy();
+    expect(pattern.match('AAAAAA')).toBeTruthy();
+    expect(pattern.match('')).toBeTruthy();
+    expect(pattern.match('BBBB')).toBeTruthy();
+    expect(pattern.match('BCCCBCBBCC')).toBeTruthy();
+    expect(pattern.match('ABC')).toBeFalsy();
+    expect(pattern.match('AC')).toBeFalsy();
+    expect(pattern.match('AB')).toBeFalsy();
 })
 
 test("escaping wildchar", () => {
@@ -192,24 +246,68 @@ test("escaping wildchar", () => {
 
     expect(pattern.isValid().result).toBeTruthy();
     expect(pattern.regexp).toEqual(regexp);
+    expect(pattern.match('..')).toBeTruthy();
+    expect(pattern.match('.A')).toBeFalsy();
+    expect(pattern.match('.$')).toBeFalsy();
+    expect(pattern.match('A.')).toBeFalsy();
 })
 
 test("Wild Char", () => {
     var pattern = new XsdPattern(".*");
     expect(pattern.isValid().result).toBeTruthy();
     expect(pattern.regexp.branches[0].pieces[0].atom).toBeInstanceOf(WildChar);
+    expect(pattern.match('')).toBeTruthy();
+    expect(pattern.match('basically anything 😀')).toBeTruthy();
+    expect(pattern.match('basically anything\r\n but not crlf')).toBeFalsy();
 
 })
 
-test("MultiChar", () => {
+test("MultiChar space ", () => {
     var pattern = new XsdPattern("\\s+");
     expect(pattern.isValid().result).toBeTruthy();
     expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new MultiChar("s"));
+    expect(pattern.match(' ')).toBeTruthy();
+    expect(pattern.match('  ')).toBeTruthy();
+    expect(pattern.match('\t\n\r')).toBeTruthy();
+    expect(pattern.match('a')).toBeFalsy();
+    
+    var pattern = new XsdPattern("\\S+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new MultiChar("S"));
+    expect(pattern.match(' ')).not.toBeTruthy();
+    expect(pattern.match('  ')).not.toBeTruthy();
+    expect(pattern.match('\t\n\r')).not.toBeTruthy();
+    expect(pattern.match('a')).not.toBeFalsy();
+
+})
+
+test("MultiChar namecharstart (\\i) ", () => {
+    var pattern = new XsdPattern("\\i+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new MultiChar("i"));
+    expect(pattern.match('Document')).toBeTruthy();
+    expect(pattern.match('_doc')).toBeTruthy();
+    expect(pattern.match('教育')).toBeTruthy();
+    expect(pattern.match('evensmiley😀')).toBeTruthy();
+    expect(pattern.match('-')).toBeFalsy();
+    expect(pattern.match('0')).toBeFalsy();
+
+    
+    var pattern = new XsdPattern("\\I+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new MultiChar("I"));
+    expect(pattern.match('Document')).not.toBeTruthy();
+    expect(pattern.match('_doc')).not.toBeTruthy();
+    expect(pattern.match('教育')).not.toBeTruthy();
+    expect(pattern.match('evensmiley😀')).not.toBeTruthy();
+    expect(pattern.match('-')).not.toBeFalsy();
+    expect(pattern.match('0')).not.toBeFalsy();
+
 
 })
 
 test("Category and Complement", () => {
-    var pattern = new XsdPattern("\\p{Lu}*\\P{BasicLatin-1}*");
+    var pattern = new XsdPattern("\\p{Lu}*\\P{IsBasicLatin-1}*");
     expect(pattern.isValid().result).toBeTruthy();
     expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new Category("Lu"));
     expect(pattern.regexp.branches[0].pieces[1].atom).toStrictEqual(new Complement("BasicLatin-1"));
