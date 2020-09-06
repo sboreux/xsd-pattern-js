@@ -31,7 +31,7 @@ var parsePiece = (input: string): [Piece, string] => {
     return [piece, leftover];
 }
 
-var parseAtom = (input: string): [SingleChar | RegExp | MultiChar | WildChar | CharGroup, string] => {
+var parseAtom = (input: string): [SingleChar | RegExp | MultiChar | WildChar | CharGroup | Category | Complement, string] => {
     var firstChar = input.substr(0, 1);
     if (firstChar.match(/[^.\\?*+{}()|\[\]]/)) {
         return [new SingleChar(input[0]), input.substr(1)];
@@ -74,10 +74,15 @@ var parseCharEscape = (input: string): [SingleChar | MultiChar | WildChar | Cate
         if (match) {
             var name = match[1];
             var leftover = input.substr(match[0].length + 2);
-            if (input[1] == 'p') {
-                return [new Category(name), leftover];
+            var script = name.startsWith("Is");
+            if (script)
+            {
+                name = name.substr(2);
             }
-            return [new Complement(name), leftover];
+            if (input[1] == 'p') {
+                return [new Category(name,script), leftover];
+            }
+            return [new Complement(name,script), leftover];
         }
         else {
             throw new ParseException(`category or complement not correctly formated`);
@@ -104,8 +109,8 @@ var parseCharGroup = (input: string): [CharGroup, string] => {
     return [char_group, leftover];
 }
 
-var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange, string] => {
-    var char: SingleChar | MultiChar | WildChar;
+var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange |  Category | Complement, string] => {
+    var char: SingleChar | MultiChar | WildChar | Category | Complement;
     var leftover = input;
     if (input[0] == '\\') {
         [char, leftover] = parseCharEscape(leftover);
@@ -121,7 +126,7 @@ var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange, s
         leftover = input.substr(1);
     }
 
-    if (char instanceof WildChar) {
+    if (char instanceof WildChar || char instanceof Category || char instanceof Complement) {
         throw new ParseException(`Wild char cannot be used in CharGroup`);
     }
 

@@ -20,19 +20,23 @@ export class MultiChar {
 }
 
 export class Category {
-    code: string;
+    name: string;
+    script: boolean = false;
 
-    constructor(value: string) {
-        this.code = value;
+    constructor(value: string, script: boolean) {
+        this.name = value;
+        this.script = script;
     }
 
 }
 
 export class Complement {
-    code: string;
+    name: string;
+    script: boolean = false;
 
-    constructor(value: string) {
-        this.code = value;
+    constructor(value: string, script: boolean) {
+        this.name = value;
+        this.script = script;
     }
 
 }
@@ -44,7 +48,7 @@ export class WildChar {
 
 export class CharGroup {
     negative: boolean = false;
-    parts: Array<SingleChar | MultiChar | CharRange > = [];
+    parts: Array<SingleChar | MultiChar | CharRange | Category | Complement> = [];
 }
 
 export class CharRange {
@@ -72,7 +76,7 @@ export class Quantifier {
 }
 
 export class Piece {
-    atom!: SingleChar | RegExp | MultiChar | WildChar | CharGroup;
+    atom!: SingleChar | RegExp | MultiChar | WildChar | CharGroup | Category | Complement;
     quantifier: Quantifier = new Quantifier(1,1);
 }
 

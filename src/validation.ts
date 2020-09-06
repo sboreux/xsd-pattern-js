@@ -1,4 +1,4 @@
-import { Branch, Piece, Regexp, SingleChar, MultiChar, WildChar, CharGroup, Quantifier, CharRange } from "./components";
+import { Branch, Piece, Regexp, SingleChar, MultiChar, WildChar, CharGroup, Quantifier, CharRange, Complement, Category } from "./components";
 
 export var regexpToJS = (input: Regexp): RegExp => {
     var branchesJS = input.branches.map(branchToJSre);
@@ -18,7 +18,7 @@ var pieceToJSre = (piece: Piece): string => {
     return atomtoJSre(piece.atom) + quantifiertoJsre(piece.quantifier);
 }
 
-var atomtoJSre = (atom: Regexp | SingleChar | MultiChar | WildChar | CharGroup): string => {
+var atomtoJSre = (atom: Regexp | SingleChar | MultiChar | WildChar | CharGroup | Category | Complement): string => {
     if (atom instanceof Regexp) {
         return `(${regexpToJSre(atom)})`;
     }
@@ -36,6 +36,12 @@ var atomtoJSre = (atom: Regexp | SingleChar | MultiChar | WildChar | CharGroup):
     }
     else if (atom instanceof CharGroup) {
         return charGrouptoJsre(atom)
+    }
+    else if (atom instanceof Category) {
+        return `\\p{${atom.script?"Script=":""}${atom.name}}`
+    }
+    else if (atom instanceof Complement) {
+        return `\\P{${atom.script?"Script=":""}${atom.name}}`
     }
     throw new Error("Unexpected");
 }
@@ -69,7 +75,7 @@ var charGrouptoJsre = (input: CharGroup): string => {
     return `[${input.negative ? "^" : ""}${input.parts.map(partstoJSre).join('')}]`;
 }
 
-var partstoJSre = (input: SingleChar | MultiChar | CharRange): string => {
+var partstoJSre = (input: SingleChar | MultiChar | CharRange | Category | Complement): string => {
     if (input instanceof SingleChar) {
         return singleChartoJSre(input)
     }
@@ -81,6 +87,12 @@ var partstoJSre = (input: SingleChar | MultiChar | CharRange): string => {
     }
     else if (input instanceof CharRange) {
         return `${singleChartoJSre(input.begin)}-${singleChartoJSre(input.end)}`
+    }
+    else if (input instanceof Category) {
+        return `\\p{${input.name}}`
+    }
+    else if (input instanceof Complement) {
+        return `\\P{${input.name}}`
     }
     throw new Error("Unexpected");
 }

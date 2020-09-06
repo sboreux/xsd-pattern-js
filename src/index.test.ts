@@ -341,10 +341,38 @@ test("MultiChar namechar (\\c) ", () => {
 
 })
 
-test("Category and Complement", () => {
-    var pattern = new XsdPattern("\\p{Lu}*\\P{IsBasicLatin-1}*");
+test("Category", () => {
+    var pattern = new XsdPattern("\\p{Lu}+");
     expect(pattern.isValid().result).toBeTruthy();
-    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new Category("Lu"));
-    expect(pattern.regexp.branches[0].pieces[1].atom).toStrictEqual(new Complement("BasicLatin-1"));
-
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new Category("Lu",false));
+    expect(pattern.match('AAA')).toBeTruthy();
+    expect(pattern.match('aaa')).toBeFalsy();
+    
 })
+
+test("Complement", () => {
+    var pattern = new XsdPattern("\\P{Lu}+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new Complement("Lu",false));
+    expect(pattern.match('AAA')).not.toBeTruthy();
+    expect(pattern.match('aaa')).not.toBeFalsy();
+    
+})
+
+test("Category Script", () => {
+    var pattern = new XsdPattern("\\p{IsKatakana}+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new Category("Katakana",true));
+    expect(pattern.match('トウキョウ')).toBeTruthy();
+    expect(pattern.match('大阪')).toBeFalsy();
+})
+
+test("Complement Script", () => {
+    var pattern = new XsdPattern("\\P{IsKatakana}+");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.regexp.branches[0].pieces[0].atom).toStrictEqual(new Complement("Katakana",true));
+    expect(pattern.match('トウキョウ')).not.toBeTruthy();
+    expect(pattern.match('大阪')).not.toBeFalsy(); 
+})
+
+
