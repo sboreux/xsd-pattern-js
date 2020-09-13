@@ -1,13 +1,17 @@
 {
-  "name": "pattern-tester",
+  "name": "xsd-pattern-js",
   "version": "0.0.1",
-  "description": "Library to parse and nuild an xsd pattern in typescript",
+  "description": "Library to parse xsd pattern and generate an equivalent javascript regexp",
   "main": "src/index.ts",
   "scripts": {
     "test": "jest",
     "build": "webpack"
   },
-  "author": "",
+  "author": "sboreux",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sboreux/xsd-pattern-js"
+  },
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/jest": "^26.0.10",
