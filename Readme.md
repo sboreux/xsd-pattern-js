@@ -4,4 +4,12 @@ This library parse a XSD (XML Schema) regular expression (as use in a pattern fa
 
 ## How to use it 
 
-> TODO
+### Javascript
+
+```javascript
+var xpj = require("xsd-pattern-js")
+var pattern = new xpj.XsdPattern("A+");
+pattern.match("AA"); //return true
+pattern.match("AB"); //return false
+
+```
