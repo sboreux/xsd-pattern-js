@@ -75,14 +75,13 @@ var parseCharEscape = (input: string): [SingleChar | MultiChar | WildChar | Cate
             var name = match[1];
             var leftover = input.substr(match[0].length + 2);
             var script = name.startsWith("Is");
-            if (script)
-            {
+            if (script) {
                 name = name.substr(2);
             }
             if (input[1] == 'p') {
-                return [new Category(name,script), leftover];
+                return [new Category(name, script), leftover];
             }
-            return [new Complement(name,script), leftover];
+            return [new Complement(name, script), leftover];
         }
         else {
             throw new ParseException(`category or complement not correctly formated`);
@@ -102,7 +101,7 @@ var parseCharGroup = (input: string): [CharGroup, string] => {
     }
 
     while (leftover[0] != ']') {
-        if (leftover.length == 0){
+        if (leftover.length == 0) {
             throw new ParseException(`Missing closing ]`);
         }
         var [part, leftover] = parseCharGroupPart(leftover);
@@ -114,9 +113,10 @@ var parseCharGroup = (input: string): [CharGroup, string] => {
     return [char_group, leftover];
 }
 
-var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange |  Category | Complement, string] => {
+var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange | Category | Complement, string] => {
     var char: SingleChar | MultiChar | WildChar | Category | Complement;
     var leftover = input;
+
     if (input[0] == '\\') {
         [char, leftover] = parseCharEscape(leftover);
     }
@@ -136,23 +136,42 @@ var parseCharGroupPart = (input: string): [SingleChar | MultiChar | CharRange | 
     }
 
     if (leftover[0] == '-') {
-        var end_char: SingleChar | MultiChar | WildChar;
+        var end_char: SingleChar ;
         if (char instanceof MultiChar) {
             throw new ParseException(`Multi char cannot be used in CharRange`);
         }
-        [end_char, leftover] = parseCharEscape(leftover.substr(1));
-        if (end_char instanceof WildChar) {
-            throw new ParseException(`Wild char cannot be used in CharRange`);
-        }
-        if (end_char instanceof MultiChar) {
-            throw new ParseException(`Multi char cannot be used in CharRange`);
-        }
+        [end_char, leftover] = parseSingleChar(leftover.substr(1));
         return [new CharRange(char, end_char), leftover]
     }
     else {
         return [char, leftover];
     }
 
+}
+
+var parseSingleChar = (input: string): [SingleChar, string] => {
+    var char: SingleChar | MultiChar | WildChar | Category | Complement;
+    var leftover = input;
+
+    if (input[0] == '\\') {
+        [char, leftover] = parseCharEscape(leftover);
+    }
+    else if (input[0] == ']') {
+        throw new ParseException(`Unexpected closing ]`);
+    }
+    else if (input[0] == '[') {
+        throw new ParseException(`[ must be escape in CharGroup`);
+    }
+    else {
+        char = new SingleChar(input[0]);
+        leftover = input.substr(1);
+    }
+
+    if (char instanceof SingleChar) {
+        return [char, leftover];
+
+    }
+    throw new ParseException(`Wild char cannot be used in CharGroup`);
 }
 
 var parseQuantifier = (input: string): [Quantifier, string] => {

@@ -1,6 +1,5 @@
 # XSD-Pattern-JS
-
-This library parse a XSD (XML Schema) regular expression (as use in a pattern facet). It can output an equivalent javascript (ECMAScript) regexp. This allows to validate an XSD pattern directly in javascript.
+This library parse a XSD (XML Schema), [as defined by w3c](https://www.w3.org/TR/xmlschema11-2/datatypes.diff-wd.html#regexs) ,regular expression (as use in a pattern facet). It can output an equivalent javascript (ECMAScript) regexp. This allows to validate an XSD pattern directly in javascript.
 
 This library is written in Typescript.
 

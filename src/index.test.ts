@@ -387,3 +387,11 @@ test("Imcomplete char group", () => {
     expect(pattern.isValid().result).toBeFalsy();
     
 })
+
+test("mix with char group", () => {
+    var pattern = new XsdPattern("pacs\\.00[89]\\.001\\.[0-9]{2}|MT101");
+    expect(pattern.isValid().result).toBeTruthy();
+    expect(pattern.match('pacs.009.001.01')).toBeTruthy(); 
+    expect(pattern.match('MT101')).toBeTruthy(); 
+    expect(pattern.match('pacs.007.001.01')).toBeFalsy(); 
+})
