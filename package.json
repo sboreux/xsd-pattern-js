@@ -1,6 +1,6 @@
 {
   "name": "xsd-pattern-js",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Library to parse xsd pattern and generate an equivalent javascript regexp",
   "main": "dist/bundle.js",
   "scripts": {
