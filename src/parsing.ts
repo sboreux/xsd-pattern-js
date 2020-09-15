@@ -100,11 +100,16 @@ var parseCharGroup = (input: string): [CharGroup, string] => {
         char_group.negative = true;
         leftover = leftover.substr(1);
     }
-    var [part, leftover] = parseCharGroupPart(leftover);
-    char_group.parts.push(part);
+
     while (leftover[0] != ']') {
+        if (leftover.length == 0){
+            throw new ParseException(`Missing closing ]`);
+        }
         var [part, leftover] = parseCharGroupPart(leftover);
         char_group.parts.push(part);
+    }
+    if (char_group.parts.length == 0) {
+        throw new ParseException(`There must at least one char group within []]`);
     }
     return [char_group, leftover];
 }

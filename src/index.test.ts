@@ -376,3 +376,14 @@ test("Complement Script", () => {
 })
 
 
+test("Imcomplete char group", () => {
+    var pattern = new XsdPattern("[");
+    expect(pattern.isValid().result).toBeFalsy();
+    pattern = new XsdPattern("a[");
+    expect(pattern.isValid().result).toBeFalsy();
+    pattern = new XsdPattern("pain\.00[");
+    expect(pattern.isValid().result).toBeFalsy();
+    pattern = new XsdPattern("[]");
+    expect(pattern.isValid().result).toBeFalsy();
+    
+})
