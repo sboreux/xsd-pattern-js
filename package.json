@@ -1,11 +1,12 @@
 {
   "name": "xsd-pattern-js",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Library to parse xsd pattern and generate an equivalent javascript regexp",
   "main": "dist/bundle.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "webpack"
+    "build": "webpack --mode=production"
   },
   "author": "sboreux",
   "repository": {
