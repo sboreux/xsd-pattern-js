@@ -13,6 +13,13 @@
     "url": "https://github.com/sboreux/xsd-pattern-js"
   },
   "license": "Apache-2.0",
+  "keywords": [
+		"xml",
+		"schema",
+		"pattern",
+    "xsd",
+    "regexp"
+	],
   "devDependencies": {
     "@types/jest": "^26.0.10",
     "jest": "^26.4.2",
