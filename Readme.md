@@ -3,6 +3,8 @@ This library parse a XSD (XML Schema), [as defined by w3c](https://www.w3.org/TR
 
 This library is written in Typescript.
 
+[Live demo](https://online-xsd-pattern.vercel.app/)
+
 ## How to use it 
 
 ### Javascript
